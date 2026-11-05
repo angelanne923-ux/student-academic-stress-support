@@ -293,7 +293,94 @@ function editTask(id) {
 }
 
 function openTaskForm(t = null) {
-    modal(`<h3>${t?'Edit academic task':'Add academic task'}</h3><div class="field"><label>Task title *</label><input name="title" required maxlength="120" value="${esc(t?.title||'')}" placeholder="e.g., Submit research chapter"></div><div class="form-grid"><div class="field"><label>Subject / course</label><input name="subject" value="${esc(t?.subject||'')}" placeholder="e.g., Web Development"></div><div class="field"><label>Deadline *</label><input name="due" type="date" required value="${t?.due||today()}"></div><div class="field"><label>Priority</label><select name="priority">${['High','Medium','Low'].map(x=>`<option ${t?.priority===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Status</label><select name="status">${['To Do','In Progress','Completed'].map(x=>`<option ${t?.status===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field span2"><label>Notes (optional)</label><textarea name="notes">${esc(t?.notes||'')}</textarea></div></div><div class="form-actions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button>${t?`<button type="button" class="danger" onclick="deleteTask('${t.id}')">Delete</button>`:''}<button>Save task</button></div></form>`)
+    modal(`
+        <form onsubmit="saveTask(event, '${t?.id || ''}')">
+
+            <h3>${t ? 'Edit academic task' : 'Add academic task'}</h3>
+
+            <div class="field">
+                <label>Task title *</label>
+                <input
+                    name="title"
+                    required
+                    maxlength="120"
+                    value="${esc(t?.title || '')}"
+                    placeholder="e.g., Submit research chapter"
+                >
+            </div>
+
+            <div class="form-grid">
+
+                <div class="field">
+                    <label>Subject / course</label>
+                    <input
+                        name="subject"
+                        value="${esc(t?.subject || '')}"
+                        placeholder="e.g., Web Development"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Deadline *</label>
+                    <input
+                        name="due"
+                        type="date"
+                        required
+                        value="${t?.due || today()}"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Priority</label>
+                    <select name="priority">
+                        ${['High', 'Medium', 'Low'].map(x =>
+                            `<option ${t?.priority === x ? 'selected' : ''}>${x}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Status</label>
+                    <select name="status">
+                        ${['To Do', 'In Progress', 'Completed'].map(x =>
+                            `<option ${t?.status === x ? 'selected' : ''}>${x}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+
+                <div class="field span2">
+                    <label>Notes (optional)</label>
+                    <textarea name="notes">${esc(t?.notes || '')}</textarea>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button
+                    type="button"
+                    class="secondary"
+                    onclick="closeModal()"
+                >
+                    Cancel
+                </button>
+
+                ${t ? `
+                    <button
+                        type="button"
+                        class="danger"
+                        onclick="deleteTask('${t.id}')"
+                    >
+                        Delete
+                    </button>
+                ` : ''}
+
+                <button type="submit">Save task</button>
+
+            </div>
+
+        </form>
+    `);
 }
 
 async function saveTaskToDatabase(task) {
