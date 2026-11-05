@@ -383,61 +383,92 @@ function openTaskForm(t = null) {
     `);
 }
 
+// SAVE TASK TO DATABASE (XAMPP / PHP / MySQL)
 async function saveTaskToDatabase(task) {
     try {
-        const response = await fetch(
-            "api/save_task.php",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    user_id: 1,
-                    title: task.title,
-                    description: task.description,
-                    due_date: task.due_date
-                })
-            }
-        );
+        const response = await fetch("api/save_task.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                user_id: 1,
+                title: task.title,
+                description: task.description || "",
+                due_date: task.due_date
+            })
+        });
 
         const result = await response.json();
 
-        if (result.success) {
-            toast("Task saved successfully!");
-        } else {
-            toast("Unable to save task.")
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to save task.");
         }
+
+        console.log("Task successfully saved to MySQL.");
+
+        return true;
+
     } catch (error) {
-        console.error(error);
-        toast("Databases connection error.");
+        console.error("Database Error:", error);
+
+        toast("Database connection error. Task saved locally.");
+
+        return false;
     }
-    
 }
 
+// SAVE OR UPDATE ACADEMIC TASK
 async function saveTask(e, id) {
     e.preventDefault();
-    let f = Object.fromEntries(new FormData(e.target));
+
+    const form = e.target;
+    const f = Object.fromEntries(new FormData(form));
+
+    let isNewTask = !id;
+
     if (id) {
-        Object.assign(db.tasks.find(t => t.id === id), f);
+
+        // UPDATE EXISTING TASK
+        const existingTask = db.tasks.find(t => t.id === id);
+
+        if (existingTask) {
+            Object.assign(existingTask, f);
+        }
+
     } else {
-        let newTask = {
+
+        // CREATE NEW TASK
+        const newTask = {
             id: uid(),
             ...f
         };
+
         db.tasks.push(newTask);
-        
-        // Sync with backend database via your new function
+
+        // SYNC NEW TASK WITH MYSQL DATABASE
         await saveTaskToDatabase({
             title: newTask.title,
-            description: newTask.notes || '',
-            due_date: newTask.due
+            description: newTask.notes || newTask.description || "",
+            due_date: newTask.due || newTask.due_date
         });
     }
+
+    // SAVE TO LOCAL STORAGE
     save();
+
+    // CLOSE MODAL
     closeModal();
+
+    // REFRESH INTERFACE
     render();
-    toast(id ? 'Task updated.' : 'Academic task saved.');
+
+    // SUCCESS NOTIFICATION
+    if (isNewTask) {
+        toast("Academic task saved.");
+    } else {
+        toast("Task updated.");
+    }
 }
 
 function deleteTask(id) {
