@@ -204,7 +204,7 @@ function renderLogin() {
 }
 
 function login(e) {
-    e.preventDefault();
+    e.preventDefault();            
     let email = document.getElementById('email').value.toLowerCase();
     let u = db.users.find(x => x.email.toLowerCase() === email);
     if (!u) {
@@ -275,6 +275,57 @@ function filterTasks() {
     if (el) el.innerHTML = taskRows(list);
     let c = document.getElementById('taskCount');
     if (c) c.textContent = `${list.length} task${list.length===1?'':'s'} found`
+}
+
+function viewTask(id) {
+    const t = db.tasks.find(x => String(x.id) === String(id));
+
+    if (!t) {
+        alert('Task not found.');
+        return;
+    }
+
+    modal(`
+        <h3>Task Details</h3>
+
+        <div class="field">
+            <label>Task Title</label>
+            <p>${esc(t.title)}</p>
+        </div>
+
+        <div class="field">
+            <label>Subject / Course</label>
+            <p>${esc(t.subject || 'Not specified')}</p>
+        </div>
+
+        <div class="field">
+            <label>Description</label>
+            <p>${esc(t.description || 'No description provided.')}</p>
+        </div>
+
+        <div class="form-grid">
+            <div class="field">
+                <label>Due Date</label>
+                <p>${esc(t.due || 'No deadline')}</p>
+            </div>
+
+            <div class="field">
+                <label>Priority</label>
+                <p>${esc(t.priority || 'Not specified')}</p>
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+                <p>${esc(t.status || 'To Do')}</p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" onclick="openTaskForm(db.tasks.find(x => String(x.id) === '${String(id).replace(/'/g, "\\'")}'))">
+                Edit Task
+            </button>
+        </div>
+    `);
 }
 
 function toggleTask(id, checked) {
